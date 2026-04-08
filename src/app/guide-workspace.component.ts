@@ -25,8 +25,7 @@ const SIDEBAR_STORAGE_KEY = 'crs-userguide-sidebar-collapsed';
 @Component({
     selector: 'app-guide-workspace',
     imports: [FormsModule],
-    templateUrl: './guide-workspace.component.html',
-    styleUrl: './guide-workspace.component.css'
+    templateUrl: './guide-workspace.component.html'
 })
 export class GuideWorkspaceComponent {
     private readonly auth = inject(AuthService);

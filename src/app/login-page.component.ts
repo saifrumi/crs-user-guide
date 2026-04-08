@@ -7,8 +7,7 @@ import { GuideFakeDbService } from './guide-fake-db.service';
 @Component({
     selector: 'app-login-page',
     imports: [FormsModule],
-    templateUrl: './login-page.component.html',
-    styleUrl: './login-page.component.css'
+    templateUrl: './login-page.component.html'
 })
 export class LoginPageComponent {
     private readonly auth = inject(AuthService);

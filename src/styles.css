@@ -1,16 +1,1 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
-
-html {
-    scroll-behavior: smooth;
-}
-
-body {
-    margin: 0;
-    font-family: 'IBM Plex Sans', sans-serif;
-    color: #1c1917;
-    background: #ffffff;
-}
-
-* {
-    box-sizing: border-box;
-}
+@import 'bootstrap/dist/css/bootstrap.min.css';

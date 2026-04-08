@@ -1,32 +1,41 @@
-<div class="login-shell">
-    <section class="login-card" data-testid="login-page">
-        <div class="login-brand">
-            <div class="login-brand__mark">CRS</div>
-            <div>
-                <p class="login-overline">Internal documentation</p>
-                <h1>Authorized access</h1>
-            </div>
+<div class="container-fluid min-vh-100 bg-body-tertiary d-flex align-items-center justify-content-center px-3 py-5">
+    <div class="row justify-content-center w-100">
+        <div class="col-12 col-sm-10 col-md-8 col-lg-5 col-xl-4">
+            <section class="card shadow-sm w-100" data-testid="login-page">
+                <div class="card-body p-4 d-grid gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="badge text-bg-primary rounded-pill px-3 py-2">CRS</span>
+                        <div>
+                            <p class="text-uppercase text-body-secondary small fw-semibold mb-1">Internal documentation
+                            </p>
+                            <h1 class="h3 mb-0">Authorized access</h1>
+                        </div>
+                    </div>
+
+                    <p class="mb-0 text-body-secondary">
+                        Sign in with an approved CRS account to browse guides, search topics, and edit the fake
+                        database.
+                    </p>
+
+                    <label class="form-label mb-0">
+                        <span class="d-block mb-2">Username</span>
+                        <input class="form-control" [(ngModel)]="credentials.username" name="username"
+                            autocomplete="username" placeholder="operator" />
+                    </label>
+
+                    <label class="form-label mb-0">
+                        <span class="d-block mb-2">Password</span>
+                        <input class="form-control" [(ngModel)]="credentials.password" name="password" type="password"
+                            autocomplete="current-password" placeholder="Enter your password" />
+                    </label>
+
+                    @if (errorMessage()) {
+                    <p class="alert alert-danger mb-0 py-2">{{ errorMessage() }}</p>
+                    }
+
+                    <button type="button" class="btn btn-primary w-100" (click)="submit()">Sign in</button>
+                </div>
+            </section>
         </div>
-
-        <p class="login-copy">
-            Sign in with an approved CRS account to browse guides, search topics, and edit the fake database.
-        </p>
-
-        <label class="login-field">
-            Username
-            <input [(ngModel)]="credentials.username" name="username" autocomplete="username" placeholder="operator" />
-        </label>
-
-        <label class="login-field">
-            Password
-            <input [(ngModel)]="credentials.password" name="password" type="password" autocomplete="current-password"
-                placeholder="Enter your password" />
-        </label>
-
-        @if (errorMessage()) {
-        <p class="login-error">{{ errorMessage() }}</p>
-        }
-
-        <button type="button" class="login-submit" (click)="submit()">Sign in</button>
-    </section>
+    </div>
 </div>
