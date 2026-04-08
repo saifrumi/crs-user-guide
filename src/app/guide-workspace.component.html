@@ -1,0 +1,451 @@
+<div class="docs-shell">
+    <header class="docs-topbar">
+        <div class="docs-brand-row">
+            <button type="button" class="sidebar-toggle"
+                [attr.aria-label]="isSidebarCollapsed() ? 'Expand left panel' : 'Collapse left panel'"
+                (click)="toggleSidebar()">
+                {{ isSidebarCollapsed() ? '>' : '<' }} </button>
+
+                    <div class="docs-brand">
+                        <div class="docs-brand__mark">CRS</div>
+                        <div class="docs-brand__copy">
+                            <p class="docs-overline">Internal documentation</p>
+                            <h1>CRS User Guide</h1>
+                        </div>
+                    </div>
+        </div>
+
+        <form class="docs-topbar__actions" (submit)="submitSearch($event)">
+            <input class="docs-search" type="search" [ngModel]="searchInput()" (ngModelChange)="searchInput.set($event)"
+                name="searchQuery" placeholder="Search guides, operations, and support procedures" />
+            <button type="submit" class="toolbar-button">Search</button>
+            @if (searchInput()) {
+            <button type="button" class="toolbar-button" (click)="clearSearch()">Clear</button>
+            }
+            <span class="session-pill">{{ session()?.displayName }}</span>
+            <button type="button" class="session-toggle" [class.session-toggle--active]="isEditMode()"
+                (click)="toggleEditMode()">
+                {{ isEditMode() ? 'Exit edit mode' : 'Edit mode' }}
+            </button>
+            <button type="button" class="session-toggle" (click)="logout()">Log out</button>
+        </form>
+    </header>
+
+    <div class="docs-layout" [class.docs-layout--sidebar-collapsed]="isSidebarCollapsed()">
+        <aside class="docs-sidebar" [class.docs-sidebar--collapsed]="isSidebarCollapsed()">
+            <div class="sidebar-panel">
+                <div class="sidebar-toolbar">
+                    @if (!isSidebarCollapsed()) {
+                    <p class="sidebar-heading">Guides</p>
+                    }
+
+                    <div class="sidebar-toolbar__actions">
+                        <button type="button" class="sidebar-icon-button"
+                            [attr.aria-label]="isSidebarCollapsed() ? 'Expand guides' : 'Collapse guides'"
+                            (click)="toggleSidebar()">
+                            {{ isSidebarCollapsed() ? '»' : '«' }}
+                        </button>
+                        <button type="button" class="sidebar-icon-button" aria-label="Add guide" title="Add guide"
+                            (click)="openGuideModal()">+</button>
+                    </div>
+                </div>
+
+                @if (!isSidebarCollapsed()) {
+                <div class="editor-access-panel" data-testid="guide-editor">
+                    <p class="sidebar-heading">Session</p>
+                    <p class="editor-feedback">{{ session()?.role }} access. Search, browse, and edit the fake guide
+                        database.</p>
+                </div>
+                }
+
+                @for (group of groupedGuides(); track group.name) {
+                <section class="sidebar-group">
+                    @if (!isSidebarCollapsed()) {
+                    <p class="sidebar-group__title">{{ group.name }}</p>
+                    }
+
+                    @for (guide of group.guides; track guide.id) {
+                    <button type="button" class="sidebar-link"
+                        [class.sidebar-link--active]="guide.id === currentGuideId()" [attr.title]="guide.title"
+                        (click)="selectGuide(guide.id)">
+                        <span class="sidebar-link__badge">{{ guide.title.charAt(0) }}</span>
+                        <span class="sidebar-link__copy">
+                            <span>{{ guide.title }}</span>
+                            <small>{{ guide.audience }}</small>
+                        </span>
+                    </button>
+                    }
+                </section>
+                }
+
+                @if (editorMessage() && !isSidebarCollapsed()) {
+                <p class="editor-feedback">{{ editorMessage() }}</p>
+                }
+            </div>
+        </aside>
+
+        @if (pageMode === 'guide' && selectedGuide(); as guide) {
+        <main class="docs-content">
+            <nav class="breadcrumbs" aria-label="Breadcrumbs">
+                <span>Guides</span>
+                <span>/</span>
+                <span>{{ guide.group }}</span>
+                <span>/</span>
+                <span>{{ guide.title }}</span>
+            </nav>
+
+            <article class="article">
+                <section class="edit-banner" [class.edit-banner--active]="isEditMode()">
+                    <div>
+                        <p class="sidebar-heading">Middle panel editor</p>
+                        <p class="edit-banner__text">
+                            {{
+                            isEditMode()
+                            ? 'You are editing this guide inline. Changes are saved to the fake database immediately.'
+                            : 'Turn on edit mode to update this guide inline, create topics, and manage media.'
+                            }}
+                        </p>
+
+                        @if (isEditMode()) {
+                        <div class="inline-topic-creator">
+                            <input [(ngModel)]="topicDraft.title" name="topicTitle" placeholder="New topic title" />
+                            <button type="button" class="toolbar-button" (click)="addTopic()">Add topic</button>
+                        </div>
+                        }
+                    </div>
+
+                    <button type="button" class="toolbar-button" (click)="toggleEditMode()">
+                        {{ isEditMode() ? 'Stop editing' : 'Edit this guide' }}
+                    </button>
+                </section>
+
+                <header class="article-header">
+                    <div class="article-header__top">
+                        <p class="article-overline editable-node editable-node--inline"
+                            [class.editable-node--active]="isEditMode()" [attr.contenteditable]="isEditMode()"
+                            (blur)="updateGuideTextFromEvent('audience', $event)">{{ guide.audience }}</p>
+                        @if (isEditMode()) {
+                        <button type="button" class="danger-button" (click)="deleteGuide()">Delete guide</button>
+                        }
+                    </div>
+
+                    @if (isEditMode()) {
+                    <div class="inline-edit-label">Editing guide details inline</div>
+
+                    <div class="editable-title editable-node" [class.editable-node--active]="isEditMode()"
+                        [attr.contenteditable]="isEditMode()" (blur)="updateGuideTextFromEvent('title', $event)">
+                        {{ guide.title }}
+                    </div>
+
+                    <div class="editable-meta-row">
+                        <span class="editable-chip-label">Group</span>
+                        <span class="editable-chip editable-node editable-node--inline"
+                            [class.editable-node--active]="isEditMode()" [attr.contenteditable]="isEditMode()"
+                            (blur)="updateGuideTextFromEvent('group', $event)">
+                            {{ guide.group }}
+                        </span>
+                    </div>
+
+                    <div class="article-description editable-node" [class.editable-node--active]="isEditMode()"
+                        [attr.contenteditable]="isEditMode()" [innerHTML]="guide.description"
+                        (blur)="updateGuideHtmlFromEvent('description', $event)"></div>
+
+                    <div class="article-intro editable-node" [class.editable-node--active]="isEditMode()"
+                        [attr.contenteditable]="isEditMode()" [innerHTML]="guide.intro"
+                        (blur)="updateGuideHtmlFromEvent('intro', $event)"></div>
+                    } @else {
+                    <h2>{{ guide.title }}</h2>
+                    <p class="article-description" [innerHTML]="guide.description"></p>
+                    <p class="article-intro" [innerHTML]="guide.intro"></p>
+                    }
+
+                    <div class="article-meta">Updated {{ guide.updated }}</div>
+                </header>
+
+                @for (section of guide.sections; track section.id) {
+                <section class="article-block" [attr.id]="section.id">
+                    <div class="article-block__header">
+                        <div>
+                            @if (isEditMode()) {
+                            <div class="inline-edit-label">Editing topic inline</div>
+                            <h3 class="editable-node" [class.editable-node--active]="isEditMode()"
+                                [attr.contenteditable]="isEditMode()"
+                                (blur)="updateSectionTextFromEvent(section.id, 'title', $event)">
+                                {{ section.title }}
+                            </h3>
+                            } @else {
+                            <h3>{{ section.title }}</h3>
+                            }
+                        </div>
+
+                        @if (isEditMode()) {
+                        <button type="button" class="topic-delete topic-delete--inline"
+                            (click)="deleteTopic(section.id)">Delete topic</button>
+                        }
+                    </div>
+
+                    @if (isEditMode()) {
+                    <div class="block-intro editable-node" [class.editable-node--active]="isEditMode()"
+                        [attr.contenteditable]="isEditMode()" [innerHTML]="section.content"
+                        (blur)="updateSectionHtmlFromEvent(section.id, 'content', $event)"></div>
+                    } @else {
+                    <div class="block-intro" [innerHTML]="section.content"></div>
+                    }
+
+                    @if (section.endpoint || section.authentication || isEditMode()) {
+                    <dl class="section-meta">
+                        @if (section.endpoint || isEditMode()) {
+                        <div>
+                            <dt>Endpoint</dt>
+                            <dd class="editable-node editable-node--inline" [class.editable-node--active]="isEditMode()"
+                                [attr.contenteditable]="isEditMode()"
+                                (blur)="updateSectionTextFromEvent(section.id, 'endpoint', $event)">
+                                {{ section.endpoint || 'Add endpoint' }}
+                            </dd>
+                        </div>
+                        }
+
+                        @if (section.authentication || isEditMode()) {
+                        <div>
+                            <dt>Authentication</dt>
+                            <dd class="editable-node editable-node--inline" [class.editable-node--active]="isEditMode()"
+                                [attr.contenteditable]="isEditMode()"
+                                (blur)="updateSectionTextFromEvent(section.id, 'authentication', $event)">
+                                {{ section.authentication || 'Add authentication' }}
+                            </dd>
+                        </div>
+                        }
+                    </dl>
+                    }
+
+                    @if (section.code || isEditMode()) {
+                    <pre
+                        class="code-block"><code class="editable-node editable-code" [class.editable-node--active]="isEditMode()" [attr.contenteditable]="isEditMode()" (blur)="updateSectionTextFromEvent(section.id, 'code', $event)">{{ section.code || 'Add code example' }}</code></pre>
+                    }
+
+                    @if (section.callout) {
+                    <div class="admonition" [class.admonition--tip]="section.callout.tone === 'tip'"
+                        [class.admonition--warning]="section.callout.tone === 'warning'">
+                        @if (isEditMode()) {
+                        <div class="callout-editor">
+                            <strong class="editable-node editable-node--inline"
+                                [class.editable-node--active]="isEditMode()" [attr.contenteditable]="isEditMode()"
+                                (blur)="updateCalloutTextFromEvent(section.id, 'label', $event)">
+                                {{ section.callout.label }}
+                            </strong>
+
+                            <button type="button" class="toolbar-button" (click)="cycleCalloutTone(section.id)">Tone: {{
+                                section.callout.tone }}</button>
+
+                            <div class="editable-node" [class.editable-node--active]="isEditMode()"
+                                [attr.contenteditable]="isEditMode()" [innerHTML]="section.callout.text"
+                                (blur)="updateCalloutTextFromEvent(section.id, 'text', $event, true)"></div>
+
+                            <button type="button" class="toolbar-button" (click)="removeCallout(section.id)">Remove
+                                note</button>
+                        </div>
+                        } @else {
+                        <strong>{{ section.callout.label }}</strong>
+                        <p>{{ section.callout.text }}</p>
+                        }
+                    </div>
+                    } @else if (isEditMode()) {
+                    <button type="button" class="toolbar-button toolbar-button--spaced"
+                        (click)="addCallout(section.id)">Add note</button>
+                    }
+
+                    @if (section.steps.length > 0 || isEditMode()) {
+                    <ol class="ordered-list">
+                        @for (step of section.steps; track step; let stepIndex = $index) {
+                        <li class="list-row">
+                            <span class="editable-node editable-node--inline"
+                                [class.editable-node--active]="isEditMode()" [attr.contenteditable]="isEditMode()"
+                                (blur)="updateSectionListItem(section.id, 'steps', stepIndex, $event)">{{ step }}</span>
+                            @if (isEditMode()) {
+                            <button type="button" class="topic-delete topic-delete--inline"
+                                (click)="deleteSectionListItem(section.id, 'steps', stepIndex)">Delete</button>
+                            }
+                        </li>
+                        }
+                    </ol>
+                    @if (isEditMode()) {
+                    <button type="button" class="toolbar-button toolbar-button--spaced"
+                        (click)="addSectionListItem(section.id, 'steps')">Add step</button>
+                    }
+                    }
+
+                    @if (section.bullets.length > 0 || isEditMode()) {
+                    <ul class="bullet-list">
+                        @for (bullet of section.bullets; track bullet; let bulletIndex = $index) {
+                        <li class="list-row">
+                            <span class="editable-node editable-node--inline"
+                                [class.editable-node--active]="isEditMode()" [attr.contenteditable]="isEditMode()"
+                                (blur)="updateSectionListItem(section.id, 'bullets', bulletIndex, $event)">{{ bullet
+                                }}</span>
+                            @if (isEditMode()) {
+                            <button type="button" class="topic-delete topic-delete--inline"
+                                (click)="deleteSectionListItem(section.id, 'bullets', bulletIndex)">Delete</button>
+                            }
+                        </li>
+                        }
+                    </ul>
+                    @if (isEditMode()) {
+                    <button type="button" class="toolbar-button toolbar-button--spaced"
+                        (click)="addSectionListItem(section.id, 'bullets')">Add bullet</button>
+                    }
+                    }
+
+                    <div class="media-stack">
+                        @if (isEditMode()) {
+                        <div class="media-toolbar">
+                            <button type="button" class="toolbar-button" (click)="addMedia(section.id, 'image')">Add
+                                image</button>
+                            <button type="button" class="toolbar-button" (click)="addMedia(section.id, 'video')">Add
+                                video</button>
+                        </div>
+                        }
+
+                        @for (media of section.media; track media.id) {
+                        <article class="media-card">
+                            @if (isEditMode()) {
+                            <div class="media-editor-header">
+                                <button type="button" class="toolbar-button"
+                                    (click)="toggleMediaType(section.id, media.id)">Type: {{ media.type }}</button>
+                            </div>
+
+                            <div class="editable-node editable-node--inline editable-url"
+                                [class.editable-node--active]="isEditMode()" [attr.contenteditable]="isEditMode()"
+                                (blur)="updateMediaTextFromEvent(section.id, media.id, 'url', $event)">
+                                {{ media.url || 'Paste image or video URL' }}
+                            </div>
+
+                            <div class="editable-node editable-node--inline"
+                                [class.editable-node--active]="isEditMode()" [attr.contenteditable]="isEditMode()"
+                                (blur)="updateMediaTextFromEvent(section.id, media.id, 'caption', $event)">
+                                {{ media.caption || 'Add media caption' }}
+                            </div>
+
+                            <button type="button" class="topic-delete topic-delete--inline"
+                                (click)="deleteMedia(section.id, media.id)">Delete media</button>
+                            }
+
+                            @if (media.url) {
+                            @if (media.type === 'image') {
+                            <img class="media-image" [src]="media.url" [alt]="media.caption || section.title" />
+                            } @else if (isDirectVideo(media.url)) {
+                            <video class="media-video" [src]="media.url" controls playsinline></video>
+                            } @else if (isEmbeddableVideo(media.url)) {
+                            <iframe class="media-video" [src]="asEmbedUrl(media.url)" title="Guide video" loading="lazy"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                allowfullscreen></iframe>
+                            }
+                            }
+
+                            @if (media.caption) {
+                            <p class="media-caption">{{ media.caption }}</p>
+                            }
+                        </article>
+                        }
+                    </div>
+                </section>
+                }
+            </article>
+        </main>
+
+        <aside class="docs-toc">
+            <div class="toc-panel">
+                <p class="sidebar-heading">Quick paging</p>
+
+                @for (item of tableOfContents(); track item.id) {
+                <a [href]="'#' + item.id" class="toc-link">{{ item.title }}</a>
+                }
+            </div>
+        </aside>
+        } @else {
+        <main class="docs-content">
+            <nav class="breadcrumbs" aria-label="Breadcrumbs">
+                <span>Search</span>
+                <span>/</span>
+                <span>{{ searchQuery() || 'Results' }}</span>
+            </nav>
+
+            <section class="search-results-page">
+                <header class="search-results-header">
+                    <p class="sidebar-heading">Search results</p>
+                    <h2>Results for "{{ searchQuery() }}"</h2>
+                    <p class="article-description">Select a topic to open the guide page directly at the matching
+                        section.</p>
+                </header>
+
+                @if (!searchQuery()) {
+                <p class="empty-state">Enter a term in the search box to search across guide topics.</p>
+                } @else if (searchResults().length === 0) {
+                <p class="empty-state">No topics matched "{{ searchQuery() }}".</p>
+                } @else {
+                <div class="search-results-list">
+                    @for (result of searchResults(); track result.id) {
+                    <button type="button" class="search-result" (click)="openSearchResult(result)">
+                        <div class="search-result__meta">
+                            <span>{{ result.guideTitle }}</span>
+                            <span>{{ result.sectionId }}</span>
+                        </div>
+                        <strong>{{ result.sectionTitle }}</strong>
+                        <p>{{ result.snippet }}</p>
+                    </button>
+                    }
+                </div>
+                }
+            </section>
+        </main>
+        }
+    </div>
+
+    @if (isGuideModalOpen()) {
+    <div class="modal-backdrop" (click)="closeGuideModal()">
+        <div class="modal-card" data-testid="guide-modal" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+                <h2>Create Guide</h2>
+                <button type="button" class="topic-delete topic-delete--inline"
+                    (click)="closeGuideModal()">Close</button>
+            </div>
+
+            <label class="inline-field">
+                Group
+                <input [(ngModel)]="draftGuide.group" name="guideGroup" placeholder="Guides" />
+            </label>
+
+            <label class="inline-field">
+                Title
+                <input [(ngModel)]="draftGuide.title" name="guideTitle" placeholder="Warehouse handoff" />
+            </label>
+
+            <label class="inline-field">
+                Audience
+                <input [(ngModel)]="draftGuide.audience" name="guideAudience" placeholder="Shift supervisors" />
+            </label>
+
+            <label class="inline-field">
+                Summary
+                <textarea [(ngModel)]="draftGuide.description" name="guideDescription" rows="3"
+                    placeholder="Describe what this guide is for."></textarea>
+            </label>
+
+            <label class="inline-field">
+                First topic title
+                <input [(ngModel)]="draftGuide.firstSectionTitle" name="guideTopicTitle" placeholder="Overview" />
+            </label>
+
+            <label class="inline-field">
+                First topic content
+                <textarea [(ngModel)]="draftGuide.firstSectionBody" name="guideTopicBody" rows="4"
+                    placeholder="Write the opening topic content."></textarea>
+            </label>
+
+            <div class="modal-actions">
+                <button type="button" class="toolbar-button" (click)="closeGuideModal()">Cancel</button>
+                <button type="button" class="editor-submit" (click)="addGuide()">Create guide</button>
+            </div>
+        </div>
+    </div>
+    }
+</div>

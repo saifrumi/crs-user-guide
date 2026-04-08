@@ -1,0 +1,32 @@
+<div class="login-shell">
+    <section class="login-card" data-testid="login-page">
+        <div class="login-brand">
+            <div class="login-brand__mark">CRS</div>
+            <div>
+                <p class="login-overline">Internal documentation</p>
+                <h1>Authorized access</h1>
+            </div>
+        </div>
+
+        <p class="login-copy">
+            Sign in with an approved CRS account to browse guides, search topics, and edit the fake database.
+        </p>
+
+        <label class="login-field">
+            Username
+            <input [(ngModel)]="credentials.username" name="username" autocomplete="username" placeholder="operator" />
+        </label>
+
+        <label class="login-field">
+            Password
+            <input [(ngModel)]="credentials.password" name="password" type="password" autocomplete="current-password"
+                placeholder="Enter your password" />
+        </label>
+
+        @if (errorMessage()) {
+        <p class="login-error">{{ errorMessage() }}</p>
+        }
+
+        <button type="button" class="login-submit" (click)="submit()">Sign in</button>
+    </section>
+</div>
