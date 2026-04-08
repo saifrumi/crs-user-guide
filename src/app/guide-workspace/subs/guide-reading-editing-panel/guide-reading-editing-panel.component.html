@@ -1,0 +1,358 @@
+@if (pageMode() === 'guide' && guide(); as currentGuide) {
+<!-- <main class="col-12" [class.col-lg-7]="!isSidebarCollapsed()" [class.col-lg-9]="isSidebarCollapsed()">
+   
+</main> -->
+
+<nav class="small text-body-secondary mb-3" aria-label="Breadcrumbs">
+    Guides / {{ currentGuide.group }} / {{ currentGuide.title }}
+</nav>
+
+<article class="d-grid gap-3">
+    <section class="alert mb-0" [class.alert-warning]="isEditMode()" [class.alert-secondary]="!isEditMode()">
+        <div
+            class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-3">
+            <div class="flex-grow-1">
+                <p class="text-uppercase small fw-semibold mb-1">Middle panel editor</p>
+                <p class="mb-0">
+                    {{ isEditMode()
+                    ? 'You are editing this guide inline. Changes are saved to the fake database immediately.'
+                    : 'Turn on edit mode to update this guide inline, create topics, and manage media.' }}
+                </p>
+            </div>
+
+            <button type="button" class="btn" [class.btn-warning]="isEditMode()"
+                [class.btn-outline-secondary]="!isEditMode()" (click)="action.emit({ type: 'toggleEditMode' })">
+                {{ isEditMode() ? 'Stop editing' : 'Edit this guide' }}
+            </button>
+        </div>
+
+        @if (isEditMode()) {
+        <div class="input-group mt-3">
+            <input class="form-control" [value]="topicDraftTitle()" (input)="updateTopicDraftTitle($event)"
+                name="topicTitle" placeholder="New topic title" />
+            <button type="button" class="btn btn-primary" (click)="action.emit({ type: 'addTopic' })">Add
+                topic</button>
+        </div>
+        }
+    </section>
+
+    <section class="card shadow-sm">
+        <div class="card-body d-grid gap-3">
+            <div
+                class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-2">
+                <p class="text-uppercase text-body-secondary small fw-semibold mb-0" [class.border]="isEditMode()"
+                    [class.rounded]="isEditMode()" [class.p-2]="isEditMode()" [attr.contenteditable]="isEditMode()"
+                    (blur)="action.emit({ type: 'updateGuideText', field: 'audience', event: $event })">
+                    {{ currentGuide.audience }}
+                </p>
+
+                @if (isEditMode()) {
+                <button type="button" class="btn btn-outline-danger btn-sm"
+                    (click)="action.emit({ type: 'deleteGuide' })">Delete guide</button>
+                }
+            </div>
+
+            @if (isEditMode()) {
+            <p class="small fw-semibold text-uppercase text-body-secondary mb-0">Editing guide details inline</p>
+
+            <div class="border rounded p-2 bg-warning-subtle" [attr.contenteditable]="isEditMode()"
+                (blur)="action.emit({ type: 'updateGuideText', field: 'title', event: $event })">
+                <h2 class="h3 mb-0">{{ currentGuide.title }}</h2>
+            </div>
+
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <span class="text-uppercase text-body-secondary small fw-semibold">Group</span>
+                <span class="badge text-bg-secondary border rounded-pill px-3 py-2"
+                    [attr.contenteditable]="isEditMode()"
+                    (blur)="action.emit({ type: 'updateGuideText', field: 'group', event: $event })">
+                    {{ currentGuide.group }}
+                </span>
+            </div>
+
+            <div class="border rounded p-2 bg-warning-subtle" [attr.contenteditable]="isEditMode()"
+                [innerHTML]="currentGuide.description"
+                (blur)="action.emit({ type: 'updateGuideHtml', field: 'description', event: $event })"></div>
+
+            <div class="border rounded p-2 bg-warning-subtle" [attr.contenteditable]="isEditMode()"
+                [innerHTML]="currentGuide.intro"
+                (blur)="action.emit({ type: 'updateGuideHtml', field: 'intro', event: $event })"></div>
+            } @else {
+            <h2 class="h3 mb-0">{{ currentGuide.title }}</h2>
+            <div [innerHTML]="currentGuide.description"></div>
+            <div [innerHTML]="currentGuide.intro"></div>
+            }
+
+            <p class="small text-body-secondary mb-0">Updated {{ currentGuide.updated }}</p>
+        </div>
+    </section>
+
+    @for (section of currentGuide.sections; track section.id) {
+    <section class="card shadow-sm" [attr.id]="section.id">
+        <div class="card-body d-grid gap-3">
+            <div
+                class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-2">
+                <div class="flex-grow-1 d-grid gap-2">
+                    @if (isEditMode()) {
+                    <p class="small fw-semibold text-uppercase text-body-secondary mb-0">Editing topic inline</p>
+                    <div class="border rounded p-2 bg-warning-subtle" [attr.contenteditable]="isEditMode()"
+                        (blur)="action.emit({ type: 'updateSectionText', sectionId: section.id, field: 'title', event: $event })">
+                        <h3 class="h5 mb-0">{{ section.title }}</h3>
+                    </div>
+                    } @else {
+                    <h3 class="h5 mb-0">{{ section.title }}</h3>
+                    }
+                </div>
+
+                @if (isEditMode()) {
+                <button type="button" class="btn btn-outline-danger btn-sm"
+                    (click)="action.emit({ type: 'deleteTopic', sectionId: section.id })">Delete topic</button>
+                }
+            </div>
+
+            @if (isEditMode()) {
+            <div class="border rounded p-2 bg-warning-subtle" [attr.contenteditable]="isEditMode()"
+                [innerHTML]="section.content"
+                (blur)="action.emit({ type: 'updateSectionHtml', sectionId: section.id, event: $event })"></div>
+            } @else {
+            <div [innerHTML]="section.content"></div>
+            }
+
+            @if (section.endpoint || section.authentication || isEditMode()) {
+            <div class="row g-3">
+                @if (section.endpoint || isEditMode()) {
+                <div class="col-12 col-md-6">
+                    <div class="card h-100 bg-light">
+                        <div class="card-body">
+                            <p class="text-uppercase text-body-secondary small fw-semibold mb-2">Endpoint</p>
+                            <div class="font-monospace" [class.border]="isEditMode()" [class.rounded]="isEditMode()"
+                                [class.p-2]="isEditMode()" [class.bg-warning-subtle]="isEditMode()"
+                                [attr.contenteditable]="isEditMode()"
+                                (blur)="action.emit({ type: 'updateSectionText', sectionId: section.id, field: 'endpoint', event: $event })">
+                                {{ section.endpoint || 'Add endpoint' }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                }
+
+                @if (section.authentication || isEditMode()) {
+                <div class="col-12 col-md-6">
+                    <div class="card h-100 bg-light">
+                        <div class="card-body">
+                            <p class="text-uppercase text-body-secondary small fw-semibold mb-2">Authentication</p>
+                            <div class="font-monospace" [class.border]="isEditMode()" [class.rounded]="isEditMode()"
+                                [class.p-2]="isEditMode()" [class.bg-warning-subtle]="isEditMode()"
+                                [attr.contenteditable]="isEditMode()"
+                                (blur)="action.emit({ type: 'updateSectionText', sectionId: section.id, field: 'authentication', event: $event })">
+                                {{ section.authentication || 'Add authentication' }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                }
+            </div>
+            }
+
+            @if (section.code || isEditMode()) {
+            <pre
+                class="bg-dark text-light rounded p-3 mb-0 overflow-auto"><code class="font-monospace"
+                        [class.d-block]="isEditMode()" [class.border]="isEditMode()"
+                        [class.border-warning]="isEditMode()" [class.rounded]="isEditMode()" [class.p-2]="isEditMode()"
+                        [attr.contenteditable]="isEditMode()"
+                        (blur)="action.emit({ type: 'updateSectionText', sectionId: section.id, field: 'code', event: $event })">{{ section.code || 'Add code example' }}</code></pre>
+            }
+
+            @if (section.callout) {
+            <div class="alert mb-0" [class.alert-success]="section.callout.tone === 'tip'"
+                [class.alert-warning]="section.callout.tone === 'warning'"
+                [class.alert-info]="section.callout.tone !== 'tip' && section.callout.tone !== 'warning'">
+                @if (isEditMode()) {
+                <div class="d-grid gap-2">
+                    <strong class="d-block border rounded p-2 bg-white" [attr.contenteditable]="isEditMode()"
+                        (blur)="action.emit({ type: 'updateCalloutText', sectionId: section.id, field: 'label', event: $event })">
+                        {{ section.callout.label }}
+                    </strong>
+
+                    <button type="button" class="btn btn-outline-secondary btn-sm align-self-start"
+                        (click)="action.emit({ type: 'cycleCalloutTone', sectionId: section.id })">Tone: {{
+                        section.callout.tone }}</button>
+
+                    <div class="border rounded p-2 bg-white" [attr.contenteditable]="isEditMode()"
+                        [innerHTML]="section.callout.text"
+                        (blur)="action.emit({ type: 'updateCalloutText', sectionId: section.id, field: 'text', event: $event, asHtml: true })">
+                    </div>
+
+                    <button type="button" class="btn btn-outline-danger btn-sm align-self-start"
+                        (click)="action.emit({ type: 'removeCallout', sectionId: section.id })">Remove note</button>
+                </div>
+                } @else {
+                <strong class="d-block mb-2">{{ section.callout.label }}</strong>
+                <p class="mb-0">{{ section.callout.text }}</p>
+                }
+            </div>
+            } @else if (isEditMode()) {
+            <button type="button" class="btn btn-outline-secondary btn-sm align-self-start"
+                (click)="action.emit({ type: 'addCallout', sectionId: section.id })">Add note</button>
+            }
+
+            @if (section.steps.length > 0 || isEditMode()) {
+            <div class="d-grid gap-2">
+                <ol class="mb-0 ps-3 d-grid gap-2">
+                    @for (step of section.steps; track step; let stepIndex = $index) {
+                    <li>
+                        <div class="d-flex flex-column flex-md-row align-items-start justify-content-between gap-2">
+                            <span class="flex-grow-1" [class.border]="isEditMode()" [class.rounded]="isEditMode()"
+                                [class.p-2]="isEditMode()" [class.bg-warning-subtle]="isEditMode()"
+                                [attr.contenteditable]="isEditMode()"
+                                (blur)="action.emit({ type: 'updateSectionListItem', sectionId: section.id, field: 'steps', index: stepIndex, event: $event })">{{
+                                step }}</span>
+                            @if (isEditMode()) {
+                            <button type="button" class="btn btn-outline-danger btn-sm"
+                                (click)="action.emit({ type: 'deleteSectionListItem', sectionId: section.id, field: 'steps', index: stepIndex })">Delete</button>
+                            }
+                        </div>
+                    </li>
+                    }
+                </ol>
+                @if (isEditMode()) {
+                <button type="button" class="btn btn-outline-secondary btn-sm align-self-start"
+                    (click)="action.emit({ type: 'addSectionListItem', sectionId: section.id, field: 'steps' })">Add
+                    step</button>
+                }
+            </div>
+            }
+
+            @if (section.bullets.length > 0 || isEditMode()) {
+            <div class="d-grid gap-2">
+                <ul class="mb-0 ps-3 d-grid gap-2">
+                    @for (bullet of section.bullets; track bullet; let bulletIndex = $index) {
+                    <li>
+                        <div class="d-flex flex-column flex-md-row align-items-start justify-content-between gap-2">
+                            <span class="flex-grow-1" [class.border]="isEditMode()" [class.rounded]="isEditMode()"
+                                [class.p-2]="isEditMode()" [class.bg-warning-subtle]="isEditMode()"
+                                [attr.contenteditable]="isEditMode()"
+                                (blur)="action.emit({ type: 'updateSectionListItem', sectionId: section.id, field: 'bullets', index: bulletIndex, event: $event })">{{
+                                bullet }}</span>
+                            @if (isEditMode()) {
+                            <button type="button" class="btn btn-outline-danger btn-sm"
+                                (click)="action.emit({ type: 'deleteSectionListItem', sectionId: section.id, field: 'bullets', index: bulletIndex })">Delete</button>
+                            }
+                        </div>
+                    </li>
+                    }
+                </ul>
+                @if (isEditMode()) {
+                <button type="button" class="btn btn-outline-secondary btn-sm align-self-start"
+                    (click)="action.emit({ type: 'addSectionListItem', sectionId: section.id, field: 'bullets' })">Add
+                    bullet</button>
+                }
+            </div>
+            }
+
+            <div class="d-grid gap-3">
+                @if (isEditMode()) {
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm"
+                        (click)="action.emit({ type: 'addMedia', sectionId: section.id, mediaType: 'image' })">Add
+                        image</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm"
+                        (click)="action.emit({ type: 'addMedia', sectionId: section.id, mediaType: 'video' })">Add
+                        video</button>
+                </div>
+                }
+
+                @for (media of section.media; track media.id) {
+                <article class="card bg-light border-0">
+                    <div class="card-body d-grid gap-3">
+                        @if (isEditMode()) {
+                        <div class="d-flex justify-content-start">
+                            <button type="button" class="btn btn-outline-secondary btn-sm"
+                                (click)="action.emit({ type: 'toggleMediaType', sectionId: section.id, mediaId: media.id })">Type:
+                                {{ media.type }}</button>
+                        </div>
+
+                        <div class="border rounded p-2 bg-white font-monospace" [attr.contenteditable]="isEditMode()"
+                            (blur)="action.emit({ type: 'updateMediaText', sectionId: section.id, mediaId: media.id, field: 'url', event: $event })">
+                            {{ media.url || 'Paste image or video URL' }}
+                        </div>
+
+                        <div class="border rounded p-2 bg-white" [attr.contenteditable]="isEditMode()"
+                            (blur)="action.emit({ type: 'updateMediaText', sectionId: section.id, mediaId: media.id, field: 'caption', event: $event })">
+                            {{ media.caption || 'Add media caption' }}
+                        </div>
+
+                        <button type="button" class="btn btn-outline-danger btn-sm align-self-start"
+                            (click)="action.emit({ type: 'deleteMedia', sectionId: section.id, mediaId: media.id })">Delete
+                            media</button>
+                        }
+
+                        @if (media.url) {
+                        @if (media.type === 'image') {
+                        <img class="img-fluid rounded" [src]="media.url" [alt]="media.caption || section.title" />
+                        } @else if (isDirectVideo(media.url)) {
+                        <video class="w-100 rounded" [src]="media.url" controls playsinline></video>
+                        } @else if (isEmbeddableVideo(media.url)) {
+                        <iframe class="w-100 rounded" [src]="asEmbedUrl(media.url)" title="Guide video" loading="lazy"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowfullscreen></iframe>
+                        }
+                        }
+
+                        @if (media.caption) {
+                        <p class="mb-0 text-body-secondary">{{ media.caption }}</p>
+                        }
+                    </div>
+                </article>
+                }
+            </div>
+        </div>
+    </section>
+    }
+</article>
+} @else if (pageMode() === 'search') {
+<main class="col-12" [class.col-lg-9]="!isSidebarCollapsed()" [class.col-lg-11]="isSidebarCollapsed()">
+    <nav class="small text-body-secondary mb-3" aria-label="Breadcrumbs">
+        Search / {{ searchQuery() || 'Results' }}
+    </nav>
+
+    <section class="card shadow-sm">
+        <div class="card-body d-grid gap-3">
+            <header>
+                <p class="text-uppercase text-body-secondary small fw-semibold mb-1">Search results</p>
+                <h2 class="h3 mb-2">Results for "{{ searchQuery() }}"</h2>
+                <p class="mb-0 text-body-secondary">Select a topic to open the guide page directly at the matching
+                    section.</p>
+            </header>
+
+            @if (!searchQuery()) {
+            <div class="alert alert-secondary mb-0">Enter a term in the search box to search across guide topics.</div>
+            } @else if (searchResults().length === 0) {
+            <div class="alert alert-secondary mb-0">No topics matched "{{ searchQuery() }}".</div>
+            } @else {
+            <div class="d-grid gap-3">
+                @for (result of searchResults(); track result.id) {
+                <button type="button" class="search-result btn btn-outline-secondary text-start p-3"
+                    (click)="action.emit({ type: 'openSearchResult', result })">
+                    <div
+                        class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2 small text-body-secondary mb-2">
+                        <span>{{ result.guideTitle }}</span>
+                        <span>{{ result.sectionId }}</span>
+                    </div>
+                    <strong class="d-block mb-2">{{ result.sectionTitle }}</strong>
+                    <span>{{ result.snippet }}</span>
+                </button>
+                }
+            </div>
+            }
+        </div>
+    </section>
+</main>
+} @else {
+<main class="col-12" [class.col-lg-9]="!isSidebarCollapsed()" [class.col-lg-11]="isSidebarCollapsed()">
+    <section class="card shadow-sm">
+        <div class="card-body">
+            <p class="mb-0 text-body-secondary">Loading guide workspace...</p>
+        </div>
+    </section>
+</main>
+}

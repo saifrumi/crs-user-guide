@@ -1,0 +1,113 @@
+<div class="container-fluid bg-body-tertiary min-vh-100 px-0 d-flex flex-column">
+    <app-guide-top-nav [searchInput]="searchInput()" [sessionDisplayName]="session()?.displayName ?? ''"
+        [isEditMode]="isEditMode()" [isSidebarCollapsed]="isSidebarCollapsed()" (sidebarToggle)="toggleSidebar()"
+        (searchInputChange)="searchInput.set($event)" (searchSubmitted)="submitSearch($event)"
+        (clearSearch)="clearSearch()" (editModeToggle)="toggleEditMode()" (logout)="logout()"></app-guide-top-nav>
+
+    <div class="container-fluid py-3 flex-grow-1">
+        <div class="row g-3 align-items-start">
+            <div class="col-3">
+                <app-guide-left-panel [groupedGuides]="groupedGuides()" [currentGuideId]="currentGuideId()"
+                    [isSidebarCollapsed]="isSidebarCollapsed()" [sessionRole]="session()?.role ?? ''"
+                    [editorMessage]="editorMessage()" (toggleSidebar)="toggleSidebar()"
+                    (openGuideModal)="openGuideModal()" (selectGuide)="selectGuide($event)"></app-guide-left-panel>
+
+            </div>
+
+            <div class="col-9">
+                <div class="row">
+                    <div class="col-9">
+                        <app-guide-reading-editing-panel [pageMode]="pageMode" [guide]="selectedGuide()"
+                            [searchQuery]="searchQuery()" [searchResults]="searchResults()" [isEditMode]="isEditMode()"
+                            [isSidebarCollapsed]="isSidebarCollapsed()" [topicDraftTitle]="topicDraft.title"
+                            (action)="handleReadingEditingPanelAction($event)">
+                        </app-guide-reading-editing-panel>
+                    </div>
+                    <div class="col-3">
+                        @if (pageMode === 'guide' && selectedGuide()) {
+                        <app-guide-right-panel [tableOfContents]="tableOfContents()"></app-guide-right-panel>
+                        }
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <footer class="border-top bg-white mt-auto">
+        <div class="container-fluid py-4">
+            <div class="row g-3 small text-body-secondary">
+                <div class="col-12 col-md-4">
+                    <strong class="d-block text-dark mb-1">CRS Company Info</strong>
+                    <span>Customer Retail Systems internal knowledge portal for operations, support, and fulfillment
+                        teams.</span>
+                </div>
+                <div class="col-12 col-md-4">
+                    <strong class="d-block text-dark mb-1">Head Office</strong>
+                    <span>Riyadh Operations Center, Enterprise Services Division.</span>
+                </div>
+                <div class="col-12 col-md-4">
+                    <strong class="d-block text-dark mb-1">Support</strong>
+                    <span>Internal support desk: extension 2048, weekdays 08:00-17:00.</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    @if (isGuideModalOpen()) {
+    <div class="modal d-block" tabindex="-1" (click)="closeGuideModal()">
+        <div class="modal-dialog modal-dialog-centered modal-lg" (click)="$event.stopPropagation()">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title fs-5">Create Guide</h2>
+                    <button type="button" class="btn-close" aria-label="Close" (click)="closeGuideModal()"></button>
+                </div>
+
+                <div class="modal-body d-grid gap-3">
+                    <label class="form-label mb-0">
+                        <span class="d-block mb-2">Group</span>
+                        <input class="form-control" [(ngModel)]="draftGuide.group" name="guideGroup"
+                            placeholder="Guides" />
+                    </label>
+
+                    <label class="form-label mb-0">
+                        <span class="d-block mb-2">Title</span>
+                        <input class="form-control" [(ngModel)]="draftGuide.title" name="guideTitle"
+                            placeholder="Warehouse handoff" />
+                    </label>
+
+                    <label class="form-label mb-0">
+                        <span class="d-block mb-2">Audience</span>
+                        <input class="form-control" [(ngModel)]="draftGuide.audience" name="guideAudience"
+                            placeholder="Shift supervisors" />
+                    </label>
+
+                    <label class="form-label mb-0">
+                        <span class="d-block mb-2">Summary</span>
+                        <textarea class="form-control" [(ngModel)]="draftGuide.description" name="guideDescription"
+                            rows="3" placeholder="Describe what this guide is for."></textarea>
+                    </label>
+
+                    <label class="form-label mb-0">
+                        <span class="d-block mb-2">First topic title</span>
+                        <input class="form-control" [(ngModel)]="draftGuide.firstSectionTitle" name="guideTopicTitle"
+                            placeholder="Overview" />
+                    </label>
+
+                    <label class="form-label mb-0">
+                        <span class="d-block mb-2">First topic content</span>
+                        <textarea class="form-control" [(ngModel)]="draftGuide.firstSectionBody" name="guideTopicBody"
+                            rows="4" placeholder="Write the opening topic content."></textarea>
+                    </label>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" (click)="closeGuideModal()">Cancel</button>
+                    <button type="button" class="btn btn-primary" (click)="addGuide()">Create guide</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop show"></div>
+    }
+</div>

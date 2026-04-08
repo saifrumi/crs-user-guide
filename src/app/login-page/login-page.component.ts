@@ -1,8 +1,8 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AuthService } from './auth.service';
-import { GuideFakeDbService } from './guide-fake-db.service';
+import { AuthService } from '../services/auth.service';
+import { GuideFakeDbService } from '../services/guide-fake-db.service';
 
 @Component({
     selector: 'app-login-page',

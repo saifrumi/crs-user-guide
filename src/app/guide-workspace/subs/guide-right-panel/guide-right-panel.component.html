@@ -1,0 +1,12 @@
+<!-- <aside class="col-lg-2 d-none d-lg-block">
+    
+</aside> -->
+
+<div class="card shadow-sm ">
+    <div class="card-body d-grid gap-2">
+        <p class="text-uppercase text-body-secondary small fw-semibold mb-1">Quick paging</p>
+        @for (item of tableOfContents(); track item.id) {
+        <a [href]="'#' + item.id" class="btn btn-outline-secondary btn-sm text-start">{{ item.title }}</a>
+        }
+    </div>
+</div>

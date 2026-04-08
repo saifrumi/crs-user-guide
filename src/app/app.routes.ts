@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './auth.guard';
-import { GuideWorkspaceComponent } from './guide-workspace.component';
-import { LoginPageComponent } from './login-page.component';
+import { authGuard } from './core/auth.guard';
+import { GuideWorkspaceComponent } from './guide-workspace/guide-workspace.component';
+import { LoginPageComponent } from './login-page/login-page.component';
 
 export const routes: Routes = [
     {

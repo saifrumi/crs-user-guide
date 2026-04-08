@@ -1,0 +1,61 @@
+<!-- <aside class="col-12" [class.col-lg-3]="!isSidebarCollapsed()" [class.col-lg-1]="isSidebarCollapsed()">
+    
+</aside> -->
+
+<div class="card shadow-sm border-0">
+    <div class="card-body d-grid gap-3" data-testid="guide-editor">
+        <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+            @if (!isSidebarCollapsed()) {
+            <div>
+                <p class="text-uppercase text-body-secondary small fw-semibold mb-1">Guides</p>
+                <p class="text-body-secondary small mb-0">Browse and manage guide records.</p>
+            </div>
+            }
+
+            <div class="btn-group btn-group-sm">
+                <button type="button" class="btn btn-outline-secondary"
+                    [attr.aria-label]="isSidebarCollapsed() ? 'Expand guides' : 'Collapse guides'"
+                    (click)="toggleSidebar.emit()">
+                    {{ isSidebarCollapsed() ? '>' : '<' }} </button>
+                        <button type="button" class="btn btn-outline-primary" aria-label="Add guide" title="Add guide"
+                            (click)="openGuideModal.emit()">+</button>
+            </div>
+        </div>
+
+        <!-- @if (!isSidebarCollapsed()) {
+        <div class="alert alert-secondary mb-0 py-2">
+            <strong class="d-block">Session</strong>
+            <span>{{ sessionRole() }} access. Search, browse, and edit the fake guide database.</span>
+        </div>
+        } -->
+
+        @for (group of groupedGuides(); track group.name) {
+        <section class="d-grid gap-2">
+            @if (!isSidebarCollapsed()) {
+            <p class="text-uppercase text-body-secondary small fw-semibold mb-0">{{ group.name }}</p>
+            }
+
+            <div class="d-grid gap-2">
+                @for (guide of group.guides; track guide.id) {
+                <button type="button" class="btn w-100 text-start" [class.btn-primary]="guide.id === currentGuideId()"
+                    [class.btn-outline-secondary]="guide.id !== currentGuideId()" [attr.title]="guide.title"
+                    (click)="selectGuide.emit(guide.id)">
+                    @if (isSidebarCollapsed()) {
+                    {{ guide.title.charAt(0) }}
+                    } @else {
+                    <span class="d-flex flex-column align-items-start">
+                        <span>{{ guide.title }}</span>
+                        <small class="fw-normal">{{ guide.audience }}</small>
+                    </span>
+                    }
+                </button>
+                }
+            </div>
+        </section>
+        }
+
+        @if (editorMessage() && !isSidebarCollapsed()) {
+        <div class="alert alert-info mb-0 py-2">{{ editorMessage() }}</div>
+        }
+    </div>
+</div>

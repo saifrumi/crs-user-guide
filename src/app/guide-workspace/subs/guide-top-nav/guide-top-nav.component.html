@@ -1,0 +1,84 @@
+<nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom sticky-top">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Sayyar Online</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <div class="me-auto">
+                User's Guide
+            </div>
+            <!-- <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Link</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                        Dropdown
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#">Action</a></li>
+                        <li><a class="dropdown-item" href="#">Another action</a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item" href="#">Something else here</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link disabled" aria-disabled="true">Disabled</a>
+                </li>
+            </ul> -->
+            <form class="d-flex gap-1" role="search">
+                <!-- <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" /> -->
+                <input class="form-control" type="search" [value]="searchInput()" (input)="onSearchInput($event)"
+                    name="searchQuery" placeholder="Search guides, operations, and support procedures" />
+
+                <button type="submit" class="btn btn-primary">Search</button>
+                @if (searchInput()) {
+                <button type="button" class="btn btn-outline-secondary" (click)="clearSearch.emit()">Clear</button>
+                }
+                <button class="btn btn-outline-danger" type="button" (click)="logout.emit()">Logout</button>
+            </form>
+        </div>
+    </div>
+</nav>
+<!-- <header class="border-bottom bg-white sticky-top">
+    <div class="container-fluid py-3">
+        <div class="d-flex flex-column gap-3">
+            <div
+                class="d-flex flex-column flex-xl-row align-items-start align-items-xl-center justify-content-between gap-3">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <button type="button" class="btn btn-outline-secondary btn-sm"
+                        [attr.aria-label]="isSidebarCollapsed() ? 'Expand left panel' : 'Collapse left panel'"
+                        (click)="sidebarToggle.emit()">
+                        {{ isSidebarCollapsed() ? 'Expand' : 'Collapse' }}
+                    </button>
+                    <span class="badge text-bg-primary rounded-pill px-3 py-2">CRS</span>
+                    <div>
+                        <p class="text-uppercase text-body-secondary small fw-semibold mb-1">Internal documentation</p>
+                        <h1 class="h4 mb-0">CRS User Guide</h1>
+                    </div>
+                </div>
+
+                <span class="badge text-bg-light border text-dark">{{ sessionDisplayName() }}</span>
+            </div>
+
+            <form class="d-flex flex-column flex-lg-row gap-2" (submit)="searchSubmitted.emit($event)">
+                <input class="form-control" type="search" [value]="searchInput()" (input)="onSearchInput($event)"
+                    name="searchQuery" placeholder="Search guides, operations, and support procedures" />
+               
+                
+                <button type="button" class="btn" [class.btn-warning]="isEditMode()"
+                    [class.btn-outline-secondary]="!isEditMode()" (click)="editModeToggle.emit()">
+                    {{ isEditMode() ? 'Exit edit mode' : 'Edit mode' }}
+                </button>
+            </form>
+        </div>
+    </div>
+</header> -->

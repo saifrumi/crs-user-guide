@@ -1,9 +1,8 @@
 import { computed, Component, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
-import { AuthService } from './auth.service';
+import { AuthService } from '../services/auth.service';
 import {
     Guide,
     GuideDraft,
@@ -13,24 +12,30 @@ import {
     MediaType,
     SearchResult,
     TopicDraft
-} from './guide-fake-db.service';
-
-type TocItem = {
-    id: string;
-    title: string;
-};
+} from '../services/guide-fake-db.service';
+import { GuideLeftPanelComponent } from './subs/guide-left-panel/guide-left-panel.component';
+import { GuideTopNavComponent } from './subs/guide-top-nav/guide-top-nav.component';
+import { ReadingEditingPanelAction, TocItem } from '../core/guide-workspace.types';
+import { GuideRightPanelComponent } from './subs/guide-right-panel/guide-right-panel.component';
+import { GuideReadingEditingPanelComponent } from './subs/guide-reading-editing-panel/guide-reading-editing-panel.component';
 
 const SIDEBAR_STORAGE_KEY = 'crs-userguide-sidebar-collapsed';
 
 @Component({
     selector: 'app-guide-workspace',
-    imports: [FormsModule],
+    standalone: true,
+    imports: [
+        FormsModule,
+        GuideTopNavComponent,
+        GuideLeftPanelComponent,
+        GuideRightPanelComponent,
+        GuideReadingEditingPanelComponent
+    ],
     templateUrl: './guide-workspace.component.html'
 })
 export class GuideWorkspaceComponent {
     private readonly auth = inject(AuthService);
     private readonly fakeDb = inject(GuideFakeDbService);
-    private readonly sanitizer = inject(DomSanitizer);
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
 
@@ -175,6 +180,10 @@ export class GuideWorkspaceComponent {
         void this.router.navigate(['/guides', result.guideId], {
             fragment: result.sectionId
         });
+    }
+
+    updateTopicDraftTitle(value: string): void {
+        this.topicDraft = { title: value };
     }
 
     addGuide(): void {
@@ -476,36 +485,72 @@ export class GuideWorkspaceComponent {
         );
     }
 
-    asEmbedUrl(url: string): SafeResourceUrl {
-        let normalizedUrl = url;
-
-        if (url.includes('youtube.com/watch?v=')) {
-            const videoId = url.split('watch?v=')[1]?.split('&')[0];
-            normalizedUrl = videoId ? `https://www.youtube.com/embed/${videoId}` : url;
-            return this.sanitizer.bypassSecurityTrustResourceUrl(normalizedUrl);
+    handleReadingEditingPanelAction(action: ReadingEditingPanelAction): void {
+        switch (action.type) {
+            case 'toggleEditMode':
+                this.toggleEditMode();
+                return;
+            case 'updateTopicDraftTitle':
+                this.updateTopicDraftTitle(action.value);
+                return;
+            case 'addTopic':
+                this.addTopic();
+                return;
+            case 'deleteGuide':
+                this.deleteGuide();
+                return;
+            case 'updateGuideText':
+                this.updateGuideTextFromEvent(action.field, action.event);
+                return;
+            case 'updateGuideHtml':
+                this.updateGuideHtmlFromEvent(action.field, action.event);
+                return;
+            case 'deleteTopic':
+                this.deleteTopic(action.sectionId);
+                return;
+            case 'updateSectionText':
+                this.updateSectionTextFromEvent(action.sectionId, action.field, action.event);
+                return;
+            case 'updateSectionHtml':
+                this.updateSectionHtmlFromEvent(action.sectionId, 'content', action.event);
+                return;
+            case 'updateSectionListItem':
+                this.updateSectionListItem(action.sectionId, action.field, action.index, action.event);
+                return;
+            case 'addSectionListItem':
+                this.addSectionListItem(action.sectionId, action.field);
+                return;
+            case 'deleteSectionListItem':
+                this.deleteSectionListItem(action.sectionId, action.field, action.index);
+                return;
+            case 'addCallout':
+                this.addCallout(action.sectionId);
+                return;
+            case 'removeCallout':
+                this.removeCallout(action.sectionId);
+                return;
+            case 'cycleCalloutTone':
+                this.cycleCalloutTone(action.sectionId);
+                return;
+            case 'updateCalloutText':
+                this.updateCalloutTextFromEvent(action.sectionId, action.field, action.event, action.asHtml);
+                return;
+            case 'addMedia':
+                this.addMedia(action.sectionId, action.mediaType);
+                return;
+            case 'toggleMediaType':
+                this.toggleMediaType(action.sectionId, action.mediaId);
+                return;
+            case 'updateMediaText':
+                this.updateMediaTextFromEvent(action.sectionId, action.mediaId, action.field, action.event);
+                return;
+            case 'deleteMedia':
+                this.deleteMedia(action.sectionId, action.mediaId);
+                return;
+            case 'openSearchResult':
+                this.openSearchResult(action.result);
+                return;
         }
-
-        if (url.includes('youtu.be/')) {
-            const videoId = url.split('youtu.be/')[1]?.split('?')[0];
-            normalizedUrl = videoId ? `https://www.youtube.com/embed/${videoId}` : url;
-            return this.sanitizer.bypassSecurityTrustResourceUrl(normalizedUrl);
-        }
-
-        if (url.includes('vimeo.com/')) {
-            const videoId = url.split('vimeo.com/')[1]?.split('?')[0];
-            normalizedUrl = videoId ? `https://player.vimeo.com/video/${videoId}` : url;
-            return this.sanitizer.bypassSecurityTrustResourceUrl(normalizedUrl);
-        }
-
-        return this.sanitizer.bypassSecurityTrustResourceUrl(normalizedUrl);
-    }
-
-    isDirectVideo(url: string): boolean {
-        return /\.(mp4|webm|ogg)(\?.*)?$/i.test(url);
-    }
-
-    isEmbeddableVideo(url: string): boolean {
-        return url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com');
     }
 
     private readText(event: Event): string {
